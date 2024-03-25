@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  django:
+    build: .
+    container_name: backend
+    command: bash -c "
+      cd backend &&
+      python manage.py makemigrations &&
+      python manage.py migrate &&
+      python manage.py runserver 0.0.0.0:8000
+      "
+    volumes:
+      - .:/usr/src/app
+
+    network_mode: host
+    depends_on:
+      - pgdb
+
+  sideserver:
+    build:  .
+    container_name: side_server
+    command: bash -c "
+      cd side_server &&
+      python manage.py runserver 0.0.0.0:5000
+      "
+
+
+  pgdb:
+    restart: always
+    image: postgres:14.11
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+    container_name: pgdb
+    volumes:
+      - pgdbdata:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdbdata: null
